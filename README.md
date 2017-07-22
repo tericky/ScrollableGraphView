@@ -51,6 +51,8 @@ Development of this component has been sponsored by **Anomaly**. Check them out 
 | Smooth scrolling around the graph. <br><br> ![Scrolling](readme_images/scrolling.gif)|
 | Handles as many points as you can throw at it. <br><br> ![More_Scrolling](readme_images/more_scrolling.gif)|
 | Many customisation options. (Check the customisation section) <br><br> ![Customising](readme_images/customising.gif)|
+| Show label on the top of data point. Default style. (**Now NOT support animation**) <br><br> ![Customising](readme_images/top-label-0.png)|
+| Show label on the top of data point. Custom UILabel. (**Now NOT support animation**) <br><br> ![Customising](readme_images/top-label-1.png)|
 
 ## Usage
 
@@ -102,6 +104,33 @@ Add `github "philackm/ScrollableGraphView" ~> 4.0.2` to your Cartfile and then m
     
     func numberOfPoints() -> Int {
         return numberOfDataPointsInGraph
+    }
+    
+    // Label for different plot. If return nil, the system will use default style.
+    // Please do not use a reference label object.
+    func topLabel(forPlot plot: Plot) -> UILabel? {
+        if plot.identifier == "line" {
+            // You can extend UILabel to make your label style
+            let label: InsetLabel = InsetLabel()
+            label.font = UIFont.systemFont(ofSize: 12)
+            label.textColor = UIColor.white
+            label.backgroundColor = UIColor.colorFromHex(hexString: "#555555")
+            label.layer.borderColor = UIColor.colorFromHex(hexString: "#777777").cgColor
+            label.layer.cornerRadius = 10
+            label.clipsToBounds = true
+            label.padding = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
+
+            return label
+        }
+
+        return nil
+    }
+    
+    // Text show on top label.
+    func topLabelText(forPlot plot: Plot, atIndex pointIndex: Int) -> String? {
+        let value = self.value(forPlot: plot, atIndex: pointIndex)
+
+        return String(format: "%.0f", value)
     }
     ```
 
@@ -182,6 +211,13 @@ For all plots you can specify animation related information for when the plot fi
 | **animationDuration**: Double                               | How long the animation should take. Affects both the startup animation and the animation when the range of the y-axis adapts to onscreen points.                                                                                                                                                       |
 | **adaptAnimationType**: ScrollableGraphViewAnimationType    | The animation style. Possible values: <ul><li>`ScrollableGraphViewAnimationType.easeOut`</li><li>`ScrollableGraphViewAnimationType.elastic`</li><li>`ScrollableGraphViewAnimationType.custom`</li></ul>                                                                                                                                          |
 | **customAnimationEasingFunction**: ((t: Double) -> Double)? | If `adaptAnimationType` is set to `.custom`, then this is the easing function you would like applied for the animation.                                                                                                                                                                                    |
+
+#### Top Label
+| Property                                                | Description                                                                                                                                                                                                                                                                                            |
+|---------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **showTopLabel**: Bool                               | Show Label on the top of data point. Default is `false`.                                                                                                                                                       |
+| **topLabelYSpace**: CGFloat                         | The distance of label to plot.                                                                                                                                          
+
 
 ### LinePlot
 
@@ -284,6 +320,7 @@ _Note: Examples here use a "colorFromHex" extension for UIColor._
 
 ### Default
 ![simple](readme_images/gallery-v4/simple.png)
+
 ```swift
 let graphView = ScrollableGraphView(frame: frame, dataSource: self)
 
@@ -296,6 +333,7 @@ graphView.addReferenceLines(referenceLines: referenceLines)
 
 ### Bar Dark (Bar layer thanks to [@RedBlueThing](https://twitter.com/RedBlueThing))
 ![bar-dark](readme_images/gallery-v4/bar-dark.png)
+
 ```swift
 let graphView = ScrollableGraphView(frame: frame, dataSource: self)
 
@@ -335,6 +373,7 @@ return graphView
 
 ### Smooth Dark
 ![line-dark-smooth](readme_images/gallery-v4/line-dark-smooth.png)
+
 ```swift
 let graphView = ScrollableGraphView(frame: frame, dataSource: self)
 
@@ -393,6 +432,7 @@ graphView.addPlot(plot: dotPlot)
 
 ### Dot
 ![dot](readme_images/gallery-v4/dot.png)
+
 ```swift
 let graphView = ScrollableGraphView(frame: frame, dataSource: self)
 
@@ -428,6 +468,7 @@ graphView.addReferenceLines(referenceLines: referenceLines)
 
 ### Pink
 ![line-pink-straight](readme_images/gallery-v4/line-pink-straight.png)
+
 ```swift
 let graphView = ScrollableGraphView(frame: frame, dataSource: self)
 
@@ -464,6 +505,7 @@ graphView.addReferenceLines(referenceLines: referenceLines)
 
 ### Multiple Plots v1
 ![multi-v1](readme_images/gallery-v4/multi1.png)
+
 ```swift
 // Setup the line plot.
 let blueLinePlot = LinePlot(identifier: "multiBlue")
