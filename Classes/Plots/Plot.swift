@@ -7,7 +7,11 @@ open class Plot {
     open var identifier: String!
     
     var graphViewDrawingDelegate: ScrollableGraphViewDrawingDelegate! = nil
-    
+
+    // Top Label Settings
+    open var showTopLabel: Bool = false
+    open var topLabelYSpacing: CGFloat = 0
+
     // Animation Settings
     // ##################
     

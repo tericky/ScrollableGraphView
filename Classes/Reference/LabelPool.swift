@@ -16,7 +16,7 @@ internal class LabelPool {
     }
     
     @discardableResult
-    func activateLabel(forPointIndex pointIndex: Int) -> UILabel {
+    func activateLabel(forPointIndex pointIndex: Int, customLabel: UILabel? = nil) -> UILabel {
         var label: UILabel
         
         if(unused.count >= 1) {
@@ -27,7 +27,7 @@ internal class LabelPool {
             relations[pointIndex] = unusedLabelIndex
         }
         else {
-            label = UILabel()
+            label = customLabel ?? UILabel()
             labels.append(label)
             let newLabelIndex = labels.index(of: label)!
             relations[pointIndex] = newLabelIndex

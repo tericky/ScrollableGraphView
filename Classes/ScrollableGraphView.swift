@@ -94,7 +94,10 @@ import UIKit
     // Labels
     private var labelsView = UIView()
     private var labelPool = LabelPool()
-    
+
+    private var topLabelPool = [String: LabelPool]()
+    private var topLabelAssociations = [UILabel:Int]()
+
     // Data Source
     open var dataSource: ScrollableGraphViewDataSource? {
         didSet {
@@ -719,6 +722,8 @@ import UIKit
                 plot.setPlotPointPositions(forNewlyActivatedPoints: intervalForActivePoints(), withData: newData)
             }
         }
+
+        repositionActiveLabels()
         
         referenceLineView?.set(range: range)
     }
@@ -791,7 +796,7 @@ import UIKit
     
     // Labels
     // TODO in 4.1: refactor all label adding & positioning code.
-    
+
     // Update any labels for any new points that have been activated and deactivated.
     private func updateLabels(deactivatedPoints: [Int], activatedPoints: [Int]) {
         
@@ -802,18 +807,22 @@ import UIKit
         // Disable any labels for the deactivated points.
         for point in deactivatedPoints {
             labelPool.deactivateLabel(forPointIndex: point)
+
+            self.plots.forEach { plot in
+                topLabelPool[plot.identifier]?.deactivateLabel(forPointIndex: point)
+            }
         }
         
         // Grab an unused label and update it to the right position for the newly activated poitns
         for point in activatedPoints {
             let label = labelPool.activateLabel(forPointIndex: point)
-            
+
             label.text = (dataSource?.label(atIndex: point) ?? "")
             label.textColor = ref.dataPointLabelColor
             label.font = ref.dataPointLabelFont
-            
+
             label.sizeToFit()
-            
+
             // self.range.min is the current ranges minimum that has been detected
             // self.rangeMin is the minimum that should be used as specified by the user
             let rangeMin = (shouldAdaptRange) ? self.range.min : self.rangeMin
@@ -824,6 +833,51 @@ import UIKit
             let _ = labelsView.subviews.filter { $0.frame == label.frame }.map { $0.removeFromSuperview() }
             
             labelsView.addSubview(label)
+
+            // ----
+
+            self.plots.forEach { plot in
+                // check need to show label
+                guard plot.showTopLabel else {
+                    return
+                }
+
+                // Can't get value of plot
+                guard let value = dataSource?.value(forPlot: plot, atIndex: point) else {
+                    return
+                }
+
+                let pool: LabelPool = {
+                    if topLabelPool[plot.identifier] == nil {
+                        topLabelPool[plot.identifier] = LabelPool()
+                    }
+
+                    return topLabelPool[plot.identifier]!
+                }()
+
+                let topLabel: UILabel = {
+                    var label = dataSource?.topLabel(forPlot: plot)
+
+                    if label == nil {
+                        label = UILabel()
+                        label!.textColor = ref.dataPointLabelColor
+                        label!.font = ref.dataPointLabelFont
+                        label!.text = String(value)
+                    }
+
+                    return pool.activateLabel(forPointIndex: point, customLabel: label)
+                }()
+                topLabel.text = dataSource?.topLabelText(forPlot: plot, atIndex: point)
+                topLabel.sizeToFit()
+
+                topLabelAssociations[topLabel] = point
+
+                let topLabelPosition = calculatePosition(atIndex: point, value: value)
+                let adjustedTopLabelPosition = CGPoint(x: topLabelPosition.x - topLabel.frame.width / 2, y: topLabelPosition.y - 20 - plot.topLabelYSpacing)
+                topLabel.frame = CGRect(origin: adjustedTopLabelPosition, size: topLabel.frame.size)
+
+                labelsView.addSubview(topLabel)
+            }
         }
     }
     
@@ -855,6 +909,17 @@ import UIKit
             let position = calculatePosition(atIndex: 0, value: rangeMin)
             
             label.frame.origin.y = position.y + ref.dataPointLabelTopMargin
+        }
+
+        self.plots.forEach { plot in
+            topLabelPool[plot.identifier]?.activeLabels.forEach { label in
+                if let index = topLabelAssociations[label] {
+                    let value = dataSource?.value(forPlot: plot, atIndex: index)
+
+                    let position = calculatePosition(atIndex: index, value: value!)
+                    label.frame.origin.y = position.y - 20 - plot.topLabelYSpacing
+                }
+            }
         }
     }
     

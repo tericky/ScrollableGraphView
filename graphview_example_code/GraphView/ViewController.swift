@@ -5,6 +5,24 @@
 
 import UIKit
 
+internal class InsetLabel: UILabel {
+    fileprivate var padding = UIEdgeInsets.zero
+
+    override func drawText(in rect: CGRect) {
+        super.drawText(in: UIEdgeInsetsInsetRect(rect, padding))
+    }
+
+    override func textRect(forBounds bounds: CGRect, limitedToNumberOfLines numberOfLines: Int) -> CGRect {
+        let insets = self.padding
+        var rect = super.textRect(forBounds: UIEdgeInsetsInsetRect(bounds, insets), limitedToNumberOfLines: numberOfLines)
+        rect.origin.x    -= insets.left
+        rect.origin.y    -= insets.top
+        rect.size.width  += (insets.left + insets.right)
+        rect.size.height += (insets.top + insets.bottom)
+        return rect
+    }
+}
+
 class ViewController: UIViewController, ScrollableGraphViewDataSource {
 
     var graphView: ScrollableGraphView!
@@ -97,6 +115,29 @@ class ViewController: UIViewController, ScrollableGraphViewDataSource {
     func numberOfPoints() -> Int {
         return numberOfDataItems
     }
+
+    func topLabel(forPlot plot: Plot) -> UILabel? {
+        if plot.identifier == "darkLineDot" {
+            let label: InsetLabel = InsetLabel()
+            label.font = UIFont.systemFont(ofSize: 12)
+            label.textColor = UIColor.white
+            label.backgroundColor = UIColor.colorFromHex(hexString: "#555555")
+            label.layer.borderColor = UIColor.colorFromHex(hexString: "#777777").cgColor
+            label.layer.cornerRadius = 10
+            label.clipsToBounds = true
+            label.padding = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
+
+            return label
+        }
+
+        return nil
+    }
+
+    func topLabelText(forPlot plot: Plot, atIndex pointIndex: Int) -> String? {
+        let value = self.value(forPlot: plot, atIndex: pointIndex)
+
+        return String(format: "%.0f", value)
+    }
     
     // Creating Different Kinds of Graphs
     // ##################################
@@ -142,6 +183,9 @@ class ViewController: UIViewController, ScrollableGraphViewDataSource {
         blueDotPlot.dataPointFillColor = UIColor.colorFromHex(hexString: "#16aafc")
         
         blueDotPlot.adaptAnimationType = ScrollableGraphViewAnimationType.elastic
+
+        // Show the value up the line
+        blueDotPlot.showTopLabel = true
         
         // Setup the second plot.
         let orangeLinePlot = LinePlot(identifier: "multiOrange")
@@ -270,6 +314,11 @@ class ViewController: UIViewController, ScrollableGraphViewDataSource {
         
         dotPlot.adaptAnimationType = ScrollableGraphViewAnimationType.elastic
 
+        // Show the value up the line
+        dotPlot.showTopLabel = true
+        // Setup the top space to data point
+        dotPlot.topLabelYSpacing = 20
+
         // Setup the reference lines.
         let referenceLines = ReferenceLines()
         
@@ -319,7 +368,7 @@ class ViewController: UIViewController, ScrollableGraphViewDataSource {
         
         barPlot.adaptAnimationType = ScrollableGraphViewAnimationType.elastic
         barPlot.animationDuration = 1.5
-        
+
         // Setup the reference lines
         let referenceLines = ReferenceLines()
         
