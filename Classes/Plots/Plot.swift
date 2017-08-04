@@ -11,6 +11,8 @@ open class Plot {
     // Top Label Settings
     open var showTopLabel: Bool = false
     open var topLabelYSpacing: CGFloat = 0
+    open var topLabelAutoSizeToFit: Bool = true
+    open var topLabelTextSource: TopLabelTextSource = TopLabelTextSource.text
 
     // Animation Settings
     // ##################
@@ -236,7 +238,10 @@ open class Plot {
     case custom
 }
 
-
+@objc public enum TopLabelTextSource: Int {
+    case text
+    case attributedText
+}
 
 
 

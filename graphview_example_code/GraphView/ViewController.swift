@@ -138,6 +138,10 @@ class ViewController: UIViewController, ScrollableGraphViewDataSource {
 
         return String(format: "%.0f", value)
     }
+
+    func topLabelAttributedText(forPlot plot: Plot, atIndex pointIndex: Int) -> NSAttributedString? {
+        return nil
+    }
     
     // Creating Different Kinds of Graphs
     // ##################################
@@ -186,6 +190,10 @@ class ViewController: UIViewController, ScrollableGraphViewDataSource {
 
         // Show the value up the line
         blueDotPlot.showTopLabel = true
+        // auto size to fit text
+        blueDotPlot.topLabelAutoSizeToFit = true
+        // set label by label.text
+        blueDotPlot.topLabelTextSource = .text
         
         // Setup the second plot.
         let orangeLinePlot = LinePlot(identifier: "multiOrange")

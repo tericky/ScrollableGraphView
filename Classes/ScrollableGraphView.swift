@@ -867,8 +867,16 @@ import UIKit
 
                     return pool.activateLabel(forPointIndex: point, customLabel: label)
                 }()
-                topLabel.text = dataSource?.topLabelText(forPlot: plot, atIndex: point)
-                topLabel.sizeToFit()
+
+                if plot.topLabelTextSource == .text {
+                    topLabel.text = dataSource?.topLabelText(forPlot: plot, atIndex: point)
+                } else if plot.topLabelTextSource == .attributedText {
+                    topLabel.attributedText = dataSource?.topLabelAttributedText(forPlot: plot, atIndex: point)
+                }
+
+                if plot.topLabelAutoSizeToFit {
+                    topLabel.sizeToFit()
+                }
 
                 topLabelAssociations[topLabel] = point
 
